@@ -1,6 +1,7 @@
 
 # Localization
 d-i debian-installer/locale string en_US.UTF-8
+d-i pkgsel/install-language-support boolean false
 
 # Network configuration
 d-i netcfg/choose_interface select auto
@@ -48,46 +49,55 @@ d-i apt-setup/partner boolean true
 tasksel tasksel/first multiselect none
 d-i pkgsel/update-policy select unattended-upgrades
 
-#Partitioning, look for partman-auto-recipe.txt
-d-i preseed/early_command string /bin/umount /media || echo
-d-i partman-auto/method string lvm
-d-i partman-auto-lvm/new_vg_name string vg-flugel
+#Partitioning
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman-auto/purge_lvm_from_device  boolean true
+
+d-i partman-auto/disk string /dev/sda /dev/sdb /dev/sdc
+d-i partman-auto/method string raid
+
+d-i partman-auto-lvm/new_vg_name string vg_flugel
+d-i partman-auto-lvm/guided_size string max
+
+#d-i partman-auto/choose_recipe select raid-lvm
+d-i partman-auto/expert_recipe string                      \
+      raid-lvm ::                                          \
+        512 10 512 raid                                    \
+          $primary{ } $lvmignore{ } $bootable{ }           \
+          method{ raid }                                   \
+        .                                                  \
+        8192 20 -1 raid                                    \
+          $primary{ } $lvmignore{ }                        \
+          method{ raid }                                   \
+        .                                                  \
+        4096 100 1024 linux-swap                           \
+          $defaultignore $lvmok{ } lv_name{ swap }         \
+          method{ swap } format{ }                         \
+        .                                                  \
+        4096 100 -1 ext4	                           \
+          $defaultignore $lvmok{ } lv_name{ root }         \
+          method{ format } format{ }                       \
+          use_filesystem{ } filesystem{ ext4 }             \
+          mountpoint{ / }                                  \
+        .                                                  
+
+d-i partman-auto-raid/recipe string			\
+    5 3 0 ext4 /boot  /dev/sda1#/dev/sdb1#/dev/sdc1 .   \
+    5 3 0 lvm  -      /dev/sda2#/dev/sdb2#/dev/sdc2 .
+
+d-i preseed/late_command string in-target lvremove -f vg_flugel/deleteme
 
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
+
 d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
-d-i partman-basicfilesystems/no_mount_point yes
-
 d-i partman-lvm/confirm boolean true
-d-i partman-lvm/device_remove_lvm boolean true
-d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-md/confirm boolean true
+d-i partman-md/confirm_nooverwrite  boolean true
 
-d-i partman-auto/expert_recipe string \
-	boot-root-var :: \
-	100 200 200 ext2 \
-	      $defaultignore{ } \
-	      method{ format } \
-	      format{ } \
-	      use_filesystem{ } \
-	      filesystem{ ext2 } \
-	      mountpoint{ /boot } \
-	    	. \
-	1024 1024 2048 swap \
-	      $defaultignore{ } \
-	      $lvmok{ } \
-	      format{ } \
-	      lv_name{ swap } \
-	      method{ swap } \
-		. \
-	20000 30000 40000 ext4 \
-	      $defaultignore{ } \
-	      $lvmok{ } \
-	      lv_name{ rootfs } \
-	      method{ format } \
-	      format{ } \
-	      use_filesystem{ xfs } \
-	      filesystem{ xfs } \
-	      mountpoint{ / } \
-		. 
+d-i partman/mount_style select label
+
+d-i mdadm/boot_degraded boolean false
 

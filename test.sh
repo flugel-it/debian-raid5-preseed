@@ -12,6 +12,7 @@ qemu-img create -f qcow2 /tmp/disk1.qcow2 100G
 qemu-img create -f qcow2 /tmp/disk2.qcow2 100G
 qemu-img create -f qcow2 /tmp/disk3.qcow2 100G
 
-kvm-spice -hda /tmp/disk1.qcow2 -hdb /tmp/disk2.qcow2 -hdd /tmp/disk3.qcow2 \
-	-cdrom /tmp/test.iso -boot d -m 512
+sudo kvm-spice -hda /tmp/disk1.qcow2 -hdb /tmp/disk2.qcow2 -hdd /tmp/disk3.qcow2 \
+	-cdrom /tmp/test.iso -boot d -m 512 \
+	-net bridge,br=virbr0 -net nic,model=virtio
 
