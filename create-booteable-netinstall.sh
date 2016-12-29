@@ -41,7 +41,7 @@ timeout 100
 
 label debian-raid5-flugel
 kernel /install.amd/vmlinuz
-append initrd=/install.amd/initrd.gz vga=normal auto file=/cdrom/preseed/raid5.seed netcfg/get_hostname=raid5-flugel locale=en_US console-setup/layoutcode=us netcfg/choose_interface=eth0 debconf/priority=critical --
+append initrd=/install.amd/initrd.gz file=/cdrom/preseed/raid5.seed debian-installer/language=en debian-installer/locale=en_US debian-installer/country=US debian-installer/keymap=us keymap=us
 
 EOF
 
