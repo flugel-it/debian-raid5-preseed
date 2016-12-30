@@ -51,24 +51,26 @@ d-i pkgsel/update-policy select unattended-upgrades
 
 #Partitioning
 d-i partman-lvm/device_remove_lvm boolean true
-d-i partman-md/device_remove_md boolean true
-d-i partman-auto/purge_lvm_from_device  boolean true
+d-i partman-auto-lvm/new_vg_name string vg_flugel
 
+d-i partman-md/device_remove_md boolean true
+
+d-i partman-auto/purge_lvm_from_device  boolean true
 d-i partman-auto/disk string /dev/sda /dev/sdb /dev/sdc
 d-i partman-auto/method string raid
 
-d-i partman-auto-lvm/new_vg_name string vg_flugel
-d-i partman-auto-lvm/guided_size string max
-
-#d-i partman-auto/choose_recipe select raid-lvm
 d-i partman-auto/expert_recipe string                      \
       raid-lvm ::                                          \
-        512 10 512 raid                                    \
+        512 512 512 raid                                   \
           $primary{ } $lvmignore{ } $bootable{ }           \
           method{ raid }                                   \
         .                                                  \
-        8192 20 -1 raid                                    \
+        8192 8192 -1 raid                                  \
           $primary{ } $lvmignore{ }                        \
+          method{ raid }                                   \
+        .                                                  \
+        2% 1 2% raid                                       \
+          $primary{ } $lvmignore{ } $bootable{ }           \
           method{ raid }                                   \
         .                                                  \
         4096 100 4096 linux-swap                           \
@@ -84,7 +86,7 @@ d-i partman-auto/expert_recipe string                      \
 
 d-i partman-auto-raid/recipe string			\
     5 3 0 ext4 /boot  /dev/sda1#/dev/sdb1#/dev/sdc1 .   \
-    5 3 0 lvm  -      /dev/sda2#/dev/sdb2#/dev/sdc2 .
+    5 3 0 lvm  -      /dev/sda3#/dev/sdb3#/dev/sdc3 .
 
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
@@ -100,4 +102,13 @@ d-i partman/mount_style select label
 d-i mdadm/boot_degraded boolean false
 
 d-i grub-installer/bootdev string /dev/sda
+
+#There is no way to leave free space with partman, so we have to do this ugly hack
+# See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=385219
+# and https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=297201
+d-i preseed/late_command string \
+	sfdisk -d --no-reread /dev/sda | grep -v sda2 | sfdisk --no-reread /dev/sda; \
+	sfdisk -d --no-reread /dev/sdb | grep -v sdb2 | sfdisk --no-reread /dev/sdb; \
+	sfdisk -d --no-reread /dev/sdc | grep -v sdc2 | sfdisk --no-reread /dev/sdc; \
+	true
 
