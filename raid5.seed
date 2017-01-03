@@ -5,6 +5,12 @@ d-i pkgsel/install-language-support boolean false
 
 # Network configuration
 d-i netcfg/choose_interface select auto
+d-i netcfg/get_ipaddress string 10.0.0.102
+d-i netcfg/get_netmask string 255.255.252.0
+d-i netcfg/get_gateway string 10.0.3.254
+d-i netcfg/get_nameservers string 8.8.8.8
+d-i netcfg/disable_dhcp boolean true
+d-i netcfg/confirm_static boolean true
 
 # Clock and time zone setup
 d-i clock-setup/ntp boolean true
@@ -112,3 +118,6 @@ d-i preseed/late_command string \
 	sfdisk -d --no-reread /dev/sdc | grep -v sdc2 | sfdisk --no-reread /dev/sdc; \
 	true
 
+d-i debian-installer/exit/poweroff boolean true
+d-i cdrom-detect/eject boolean true
+d-i finish-install/reboot_in_progress note
